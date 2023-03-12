@@ -110,7 +110,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 	uint16_t nchans=2;
 	uint32_t samps_per_sec=32000;
 	uint16_t bits_per_mono_samp=16;
-	wav_header *head=NULL;
 	uint64_t data_size=7680000;
 	int16_t *data_ptr=NULL;
 
