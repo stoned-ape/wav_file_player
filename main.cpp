@@ -88,9 +88,9 @@ static_assert(sizeof(wav_header)==44,"");
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, INT nCmdShow){
 	AttachConsole(-1);
-	freopen("CONIN$", "r",stdin);
-	freopen("CONOUT$", "w",stdout);
-	freopen("CONOUT$", "w",stderr);
+	freopen("CONIN$","r",stdin);
+	freopen("CONOUT$","w",stdout);
+	freopen("CONOUT$","w",stderr);
 	puts("");
 
 	// test pipes
@@ -163,7 +163,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 	wndclass.hbrBackground=(HBRUSH)GetStockObject(BLACK_BRUSH);
 	wndclass.lpszClassName="window_class";
 
-	assert(RegisterClass(& wndclass));
+	assert(RegisterClass(&wndclass));
 	HWND hwnd=CreateWindow(
 		"window_class",
 		"wav player ._____.",
