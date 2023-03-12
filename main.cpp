@@ -147,7 +147,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 		if(strcmp(lpCmdLine,"-sine")==0) wave=WT_SINE;
 		else if(strcmp(lpCmdLine,"-saw")==0) wave=WT_SAW;
 		else if(strcmp(lpCmdLine,"-square")==0) wave=WT_SQUARE;
-		else if(strcmp(lpCmdLine,"-tri")==0) wave=WT_SQUARE;
+		else if(strcmp(lpCmdLine,"-tri")==0) wave=WT_TRI;
 		else{
 			puts("invalid argument");
 			puts("Usage:\n\twav_player file.wav");
