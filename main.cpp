@@ -21,37 +21,37 @@ const float pi=3.141592653589793;
 
 void ds_check(HRESULT hr,const char *code,int line,const char *file){
 	switch(hr){
-		#define CASE(val) case val:{\
-			fprintf(stderr,"%s = %s line %d, file %s\n",#val,code,line,file);\
-			exit(1);\
-		}
-		case DS_OK: break;
-		CASE(DS_NO_VIRTUALIZATION);
-		CASE(DSERR_ALLOCATED);
-		CASE(DSERR_CONTROLUNAVAIL);
-		CASE(DSERR_INVALIDPARAM);
-		CASE(DSERR_INVALIDCALL);
-		CASE(DSERR_GENERIC);
-		CASE(DSERR_PRIOLEVELNEEDED);
-		CASE(DSERR_OUTOFMEMORY);
-		CASE(DSERR_BADFORMAT);
-		CASE(DSERR_UNSUPPORTED);
-		CASE(DSERR_NODRIVER);
-		CASE(DSERR_ALREADYINITIALIZED);
-		CASE(DSERR_NOAGGREGATION);
-		CASE(DSERR_BUFFERLOST);
-		CASE(DSERR_OTHERAPPHASPRIO);
-		CASE(DSERR_UNINITIALIZED);
-		CASE(DSERR_NOINTERFACE);
-		CASE(DSERR_ACCESSDENIED);
-		CASE(DSERR_BUFFERTOOSMALL);
-		CASE(DSERR_DS8_REQUIRED);
-		CASE(DSERR_SENDLOOP);
-		CASE(DSERR_BADSENDBUFFERGUID);
-		CASE(DSERR_OBJECTNOTFOUND);
-		CASE(DSERR_FXUNAVAILABLE);
-		default: puts("unknown error");
-		#undef CASE
+	#define CASE(val) case val:{\
+		fprintf(stderr,"%s = %s line %d, file %s\n",#val,code,line,file);\
+		exit(1);\
+	}
+	case DS_OK: break;
+	CASE(DS_NO_VIRTUALIZATION);
+	CASE(DSERR_ALLOCATED);
+	CASE(DSERR_CONTROLUNAVAIL);
+	CASE(DSERR_INVALIDPARAM);
+	CASE(DSERR_INVALIDCALL);
+	CASE(DSERR_GENERIC);
+	CASE(DSERR_PRIOLEVELNEEDED);
+	CASE(DSERR_OUTOFMEMORY);
+	CASE(DSERR_BADFORMAT);
+	CASE(DSERR_UNSUPPORTED);
+	CASE(DSERR_NODRIVER);
+	CASE(DSERR_ALREADYINITIALIZED);
+	CASE(DSERR_NOAGGREGATION);
+	CASE(DSERR_BUFFERLOST);
+	CASE(DSERR_OTHERAPPHASPRIO);
+	CASE(DSERR_UNINITIALIZED);
+	CASE(DSERR_NOINTERFACE);
+	CASE(DSERR_ACCESSDENIED);
+	CASE(DSERR_BUFFERTOOSMALL);
+	CASE(DSERR_DS8_REQUIRED);
+	CASE(DSERR_SENDLOOP);
+	CASE(DSERR_BADSENDBUFFERGUID);
+	CASE(DSERR_OBJECTNOTFOUND);
+	CASE(DSERR_FXUNAVAILABLE);
+	default: puts("unknown error");
+	#undef CASE
 	}
 }
 
@@ -59,12 +59,12 @@ void ds_check(HRESULT hr,const char *code,int line,const char *file){
 
 LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wparam,LPARAM lparam){
 	switch(message){
-        case WM_CLOSE: 
-            break;
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            return 0;
-    }
+		case WM_CLOSE: 
+			break;
+		case WM_DESTROY:
+			PostQuitMessage(0);
+		return 0;
+	}
     return DefWindowProc(hwnd,message,wparam,lparam);
 }
 
@@ -127,28 +127,28 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 	int16_t *data_ptr=(int16_t*)(raw_file+sizeof(wav_header));
 
 	WNDCLASS wndclass={0};
-    wndclass.style        =CS_OWNDC;
-    wndclass.lpfnWndProc  =WndProc;
-    wndclass.hInstance    =hInstance;
-    wndclass.hCursor      =LoadCursor(NULL,IDC_ARROW);
-    wndclass.hbrBackground=(HBRUSH)GetStockObject(BLACK_BRUSH);
-    wndclass.lpszClassName="window_class";
+	wndclass.style        =CS_OWNDC;
+	wndclass.lpfnWndProc  =WndProc;
+	wndclass.hInstance    =hInstance;
+	wndclass.hCursor      =LoadCursor(NULL,IDC_ARROW);
+	wndclass.hbrBackground=(HBRUSH)GetStockObject(BLACK_BRUSH);
+	wndclass.lpszClassName="window_class";
 
-    assert(RegisterClass(& wndclass));
-    HWND hwnd=CreateWindow(
-        "window_class",
-        "wav player ._____.",
-        WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT,
-        CW_USEDEFAULT,
-        300,
-        20,
-        NULL,
-        NULL,
-        hInstance,
-        NULL
-    );
-    assert(hwnd);
+	assert(RegisterClass(& wndclass));
+	HWND hwnd=CreateWindow(
+		"window_class",
+		"wav player ._____.",
+		WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT,
+		CW_USEDEFAULT,
+		300,
+		20,
+		NULL,
+		NULL,
+		hInstance,
+		NULL
+	);
+	assert(hwnd);
 	ShowWindow(hwnd,nCmdShow);
 
 	struct IDirectSound *ds;
@@ -265,11 +265,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 
 	DS_CHECK(sec_dsbuf->Play(0,0,DSBPLAY_LOOPING));
    
-    MSG msg;
-    while(GetMessage(&msg,NULL,0,0)){
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-    }
+	MSG msg;
+	while(GetMessage(&msg,NULL,0,0)){
+		TranslateMessage(&msg);
+		DispatchMessage(&msg);
+	}
 
 	puts("done");
 }
