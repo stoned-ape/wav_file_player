@@ -65,7 +65,7 @@ LRESULT CALLBACK WndProc(HWND hwnd,UINT message,WPARAM wparam,LPARAM lparam){
 			PostQuitMessage(0);
 		return 0;
 	}
-    return DefWindowProc(hwnd,message,wparam,lparam);
+	return DefWindowProc(hwnd,message,wparam,lparam);
 }
 
 typedef struct{
