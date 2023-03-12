@@ -97,34 +97,64 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 	// puts("stdout");
 	// fputs("stderr\n",stderr);
 
+	bool gen_wave=false;
+	enum wave_type{
+		WT_SQUARE,
+		WT_TRI,
+		WT_SAW,
+		WT_SINE,
+	};
+
+	wave_type wave=WT_SINE;
+
+	uint16_t nchans=2;
+	uint32_t samps_per_sec=32000;
+	uint16_t bits_per_mono_samp=16;
+	wav_header *head=NULL;
+	uint64_t data_size=7680000;
+	int16_t *data_ptr=NULL;
+
 	puts(lpCmdLine);
 	HANDLE file=CreateFile(lpCmdLine,GENERIC_READ,0,0,OPEN_EXISTING,0,0);
-	if(file==INVALID_HANDLE_VALUE){
-		puts("invalid argument");
-		puts("Usage:\n\twav_player file.wav");
-		return 1;
+	if(file!=INVALID_HANDLE_VALUE){
+
+		uint64_t file_size;
+		static_assert(sizeof(_LARGE_INTEGER)==8,"");
+		assert(GetFileSizeEx(file,(_LARGE_INTEGER*)&file_size));
+
+		char *raw_file=(char*)malloc(file_size);
+
+		unsigned long read_size;
+		assert(ReadFile(file,raw_file,file_size,&read_size,0));
+		assert(read_size==file_size);
+
+		wav_header *head=(wav_header*)raw_file;
+		assert(head->riff==htonl('RIFF'));
+		assert(head->file_size+offsetof(wav_header,magic)==file_size);
+		assert(head->magic==htonl('WAVE'));
+		assert(head->fmt_len==offsetof(wav_header,fmt_len));
+		assert(head->fmt_type==1);
+		assert(head->nchans<=2);
+
+		data_size=file_size-sizeof(wav_header);
+		data_ptr=(int16_t*)(raw_file+sizeof(wav_header));
+
+		nchans=head->nchans;
+		samps_per_sec=head->samps_per_sec;
+		bits_per_mono_samp=head->bits_per_mono_samp;
+
+	}else{
+		gen_wave=true;
+		if(strcmp(lpCmdLine,"-sine")==0) wave=WT_SINE;
+		else if(strcmp(lpCmdLine,"-saw")==0) wave=WT_SAW;
+		else if(strcmp(lpCmdLine,"-square")==0) wave=WT_SQUARE;
+		else if(strcmp(lpCmdLine,"-tri")==0) wave=WT_SQUARE;
+		else{
+			puts("invalid argument");
+			puts("Usage:\n\twav_player file.wav");
+			return 1;
+		}
 	}
-
-	uint64_t file_size;
-	static_assert(sizeof(_LARGE_INTEGER)==8,"");
-	assert(GetFileSizeEx(file,(_LARGE_INTEGER*)&file_size));
-
-	char *raw_file=(char*)malloc(file_size);
-
-	unsigned long read_size;
-	assert(ReadFile(file,raw_file,file_size,&read_size,0));
-	assert(read_size==file_size);
-
-	wav_header *head=(wav_header*)raw_file;
-	assert(head->riff==htonl('RIFF'));
-	assert(head->file_size+offsetof(wav_header,magic)==file_size);
-	assert(head->magic==htonl('WAVE'));
-	assert(head->fmt_len==offsetof(wav_header,fmt_len));
-	assert(head->fmt_type==1);
-	assert(head->nchans<=2);
-
-	uint64_t data_size=file_size-sizeof(wav_header);
-	int16_t *data_ptr=(int16_t*)(raw_file+sizeof(wav_header));
 
 	WNDCLASS wndclass={0};
 	wndclass.style        =CS_OWNDC;
@@ -167,9 +197,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 
 	WAVEFORMATEX wavfmt={0};
 	wavfmt.wFormatTag=WAVE_FORMAT_PCM;    
-	wavfmt.nChannels=head->nchans;     
-	wavfmt.nSamplesPerSec=head->samps_per_sec;
-	wavfmt.wBitsPerSample=head->bits_per_mono_samp;
+	wavfmt.nChannels=nchans;     
+	wavfmt.nSamplesPerSec=samps_per_sec;
+	wavfmt.wBitsPerSample=bits_per_mono_samp;
 	wavfmt.nBlockAlign=(wavfmt.wBitsPerSample*wavfmt.nChannels)/8;   
 	wavfmt.nAvgBytesPerSec=wavfmt.nBlockAlign*wavfmt.nSamplesPerSec;
 	wavfmt.cbSize=0;        
@@ -204,62 +234,48 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,PSTR lpCmdLine, 
 
 	assert(reg_ptrs[0]);
 
-#if 0
-	//test waves
-	int smp_per_sec=wavfmt.nSamplesPerSec;
-	int cyc_per_sec=432/2;
-	int smp_per_cyc=smp_per_sec/cyc_per_sec;
+	if(gen_wave){
+		int smp_per_sec=wavfmt.nSamplesPerSec;
+		int cyc_per_sec=432/2;
+		int smp_per_cyc=smp_per_sec/cyc_per_sec;
 
-	enum wave_type{
-		WT_SQUARE,
-		WT_TRI,
-		WT_SAW,
-		WT_SINE,
-	};
-
-	// wave_type wave=WT_SQUARE;
-	// wave_type wave=WT_SINE;
-	// wave_type wave=WT_SAW;
-	wave_type wave=WT_TRI;
-
-
-	int16_t vol=0x7fff;
-	for(int j=0;j<1;j++){
-		typedef struct{
-			uint16_t left;
-			uint16_t right;
-		}sample;
-		sample *buf=(sample*)reg_ptrs[j];
-		if(buf==NULL) break;
-		for(int i=0;i<reg_sizes[j]/4;i++){
-			int16_t val;
-			switch(wave){
-			case WT_SQUARE:
-				val=((i%smp_per_cyc)>(smp_per_cyc/2))?vol:-vol;
-				break;
-			case WT_SINE:
-				val=vol*sinf(2*pi*i/(float)smp_per_cyc);
-				break;
-			case WT_SAW:
-				val=(2*vol*((i%smp_per_cyc)-smp_per_cyc/2))/smp_per_cyc;
-				break;
-			case WT_TRI:
-				int16_t k=i%smp_per_cyc;
-				int16_t half_period=smp_per_cyc/2;
-				if(k>=half_period){
-					k-=half_period;
-					k=half_period-k;
+		int16_t vol=0x7fff;
+		for(int j=0;j<1;j++){
+			typedef struct{
+				uint16_t left;
+				uint16_t right;
+			}sample;
+			sample *buf=(sample*)reg_ptrs[j];
+			if(buf==NULL) break;
+			for(int i=0;i<reg_sizes[j]/4;i++){
+				int16_t val;
+				switch(wave){
+				case WT_SQUARE:
+					val=((i%smp_per_cyc)>(smp_per_cyc/2))?vol:-vol;
+					break;
+				case WT_SINE:
+					val=vol*sinf(2*pi*i/(float)smp_per_cyc);
+					break;
+				case WT_SAW:
+					val=(2*vol*((i%smp_per_cyc)-smp_per_cyc/2))/smp_per_cyc;
+					break;
+				case WT_TRI:
+					int16_t k=i%smp_per_cyc;
+					int16_t half_period=smp_per_cyc/2;
+					if(k>=half_period){
+						k-=half_period;
+						k=half_period-k;
+					}
+					val=(2*vol*(k-half_period/2))/half_period;
+					break;
 				}
-				val=(2*vol*(k-half_period/2))/half_period;
-				break;
+				buf[i].left=val;
+				buf[i].right=val;
 			}
-			buf[i].left=val;
-			buf[i].right=val;
 		}
+	}else{
+		memcpy(reg_ptrs[0],data_ptr,reg_sizes[0]);
 	}
-#else
-	memcpy(reg_ptrs[0],data_ptr,reg_sizes[0]);
-#endif
 	
 	DS_CHECK(sec_dsbuf->Unlock(reg_ptrs[0],reg_sizes[0],reg_ptrs[1],reg_sizes[1]));
 
